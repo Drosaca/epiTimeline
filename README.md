@@ -13,8 +13,8 @@ here is a preview
 ## install dependencies
 pip intall -r requirements.txt
 
-## fill .env file with your autologin and fill the arrays inside the spam bots
+## create and fill .env file with your autologin 
 get your autologin url: https://intra.epitech.eu/admin/autolog
 
-## run the tool that you want to use
-python toolname.py
+## run the tool 
+python timeline.py
