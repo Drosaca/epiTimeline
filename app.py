@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import requests
 import json
+import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 from flask import Flask, render_template, make_response
@@ -8,7 +9,7 @@ import time, datetime, os, pickle
 from dotenv import load_dotenv
 
 load_dotenv()
-
+logging.basicConfig(filename='app.log', filemode='w', format='%(message)s')
 app = Flask(__name__)
 
 
@@ -24,6 +25,7 @@ def on_new_modules(new_modules):
                       headers=headers)
     except:
         print('new modules action failed')
+        logging.error('new modules action failed')
 
 
 def init():
@@ -38,6 +40,7 @@ def refresh_job():
     thread.setDaemon(True)
     thread.start()
     print("'.'")
+    logging.warning("'.'")
     refresh_modules()
 
 
@@ -97,6 +100,7 @@ def old_dates(modules):
 
 def refresh_modules(postprocess=finding_additions):
     print('Refreshing data...')
+    logging.warning('Refreshing data...')
     res = requests.get(os.getenv(
         "AUTOLOGIN") + '/course/filter?format=json&preload=1&location%5B%5D=FR&location%5B%5D=FR%2FPAR&course%5B%5D=master%2Fclassic&scolaryear%5B%5D=2020')
     modules = res.json()['items']
@@ -105,6 +109,7 @@ def refresh_modules(postprocess=finding_additions):
         for future in as_completed(futures):
             future.result()
     print('done')
+    logging.warning('done')
     modules.sort(key=lambda module: to_time(module['project_start']))
     data = map(lambda module: {'chart_array': [module['title'], module['project_start'], module['end']],
                                'activities': module['activites'],
@@ -117,6 +122,7 @@ def refresh_modules(postprocess=finding_additions):
     with open('save/modules.save', 'wb') as module_save:
         pickle.dump(data, module_save)
     print('data saved')
+    logging.warning('data saved')
     return data
 
 
