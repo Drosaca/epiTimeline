@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Timeline</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+        let rawData = []
+        let selectedModule = {}
+
+
+        async function fetch_data() {
+            let modules = await fetch('/modules')
+            modules = await modules.json()
+            rawData = modules
+            return getChartrows()
+        }
+
+        function getChartrows() {
+            return rawData.map(module => [
+                module.chart_array[0],
+                '',
+                module.registered ? '#4d9e59' : '#4285f4',
+                new Date(module.chart_array[1]),
+                new Date(module.chart_array[2])
+            ])
+        }
+
+        async function main() {
+            let rows = await fetch_data()
+            google.charts.load("current", {
+                packages: ["timeline"],
+                callback: () => {
+                    drawChart(rows)
+                    drawRegistered()
+                }
+            });
+            window.addEventListener('resize', () => {
+                drawChart(getChartrows())
+                drawActivities()
+                drawRegistered()
+            });
+            setTimeout(async () => {
+                drawChart(await fetch_data())
+            }, 10000)
+        }
+
+        function selectHandler(e) {
+            selectedModule = {...rawData[e[0].row]}
+            drawActivities()
+            let link = document.getElementById('module_url')
+            link.setAttribute('href', selectedModule.url)
+            link.innerText = selectedModule.chart_array[0]
+        }
+
+        function drawChart(rows) {
+            var container = document.getElementById('timeline');
+            var chart = new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+            google.visualization.events.addListener(chart, 'select', () => {
+                selectHandler(chart.getSelection())
+            });
+
+            dataTable.addColumn({type: 'string', id: 'Name'});
+            dataTable.addColumn({type: 'string', id: 'Name'});
+            dataTable.addColumn({type: 'string', id: 'style', role: 'style'});
+            dataTable.addColumn({type: 'date', id: 'Start'});
+            dataTable.addColumn({type: 'date', id: 'End'});
+            dataTable.addRows(rows);
+            var options = {
+                timeline: {
+                    groupByRowLabel: false,
+                    rowLabelStyle: {fontSize: 15},
+                    barLabelStyle: {fontSize: 7}
+                },
+            };
+            chart.draw(dataTable, options);
+        }
+
+        function drawActivities() {
+            if (!selectedModule.activities || !selectedModule.activities.length)
+                return;
+            var container = document.getElementById('activities');
+            var chart = new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+            google.visualization.events.addListener(chart, 'select', () => {
+                selectHandler(chart.getSelection())
+            });
+            let rows = selectedModule.activities.map(activity => [
+                activity.chart_array[0],
+                new Date(activity.chart_array[1]),
+                new Date(activity.chart_array[2]),
+            ])
+            dataTable.addColumn({type: 'string', id: 'Name'});
+            dataTable.addColumn({type: 'date', id: 'Start'});
+            dataTable.addColumn({type: 'date', id: 'End'});
+            dataTable.addRows(rows);
+            var options = {
+                timeline: {groupByRowLabel: false},
+                height: 340
+            };
+            chart.draw(dataTable, options);
+        }
+
+        function drawRegistered() {
+            var container = document.getElementById('registered');
+            var chart = new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+            google.visualization.events.addListener(chart, 'select', () => {
+                selectHandler(chart.getSelection())
+            });
+            let rows = rawData.filter(module => module.registered).map(module => [
+                module.chart_array[0],
+                new Date(module.chart_array[1]),
+                new Date(module.chart_array[2]),
+            ])
+            dataTable.addColumn({type: 'string', id: 'Name'});
+            dataTable.addColumn({type: 'date', id: 'Start'});
+            dataTable.addColumn({type: 'date', id: 'End'});
+            dataTable.addRows(rows);
+            var options = {
+                timeline: {groupByRowLabel: false}
+            };
+            chart.draw(dataTable, options);
+        }
+
+        main()
+
+
+    </script>
+</head>
+<body>
+<div style="display: flex; flex-direction: column; align-items: center; width: 100%; justify-content: center">
+    <h3>Timeline</h3>
+    <div style="display: flex;margin: 20px 10px 0 20px;width: 100%; justify-content: center;">
+        <div id="timeline" style="height: 550px; font-size: 50px; margin-right: 10px; width: 100%;"></div>
+    </div>
+
+    <h4><a id="module_url"></a></h4>
+    <div style="display:flex; flex-direction: column; margin: 20px 10px 0 20px;width: 100%; justify-content: center;">
+        <div id="activities" style=" margin-right: 10px; width: 100%;"></div>
+    </div>
+    <h3>Modules registered</h3>
+    <div style="display: flex; flex-direction: column; margin: 20px 10px 0 20px;width: 100%;">
+        <div id="registered" style="height: 540px; margin-right: 10px; width: 100%;"></div>
+    </div>
+
+</div>
+
+</body>
+</html>
