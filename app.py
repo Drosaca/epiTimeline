@@ -34,7 +34,7 @@ def init():
 
 
 def refresh_job():
-    thread = threading.Timer(60 * 5, refresh_job)
+    thread = threading.Timer(60 * 10, refresh_job)
     thread.setDaemon(True)
     thread.start()
     print("'.'")
@@ -141,4 +141,4 @@ def timeline():
 init()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')
