@@ -1,7 +1,6 @@
 # epiTimeline
 
-# timeline.py
-tool that provides a better view of modules
+A tool that provides a better view of modules
 #### details
 wait 15sec after running the script for the first time
 here is a preview
