@@ -15,14 +15,20 @@ app = Flask(__name__)
 
 # Edit this function to choose what appends when new modules are added
 def on_new_modules(new_modules):
+    print('new modules found')
+    logging.error('new modules found')
     try:
         headers = {'Access-Token': os.getenv("ACCESS_TOKEN"),
                    'Content-Type': 'application/json'}
         text = 'New modules have been added\n\n'
+        discord_text = 'New modules have been added\n\n'
         for module in new_modules:
+            public_url = module['url'].replace(os.getenv("AUTOLOGIN"), 'https://intra.epitech.eu')
             text += module['title'] + '\n' + module['url'] + '\n'
+            discord_text += module['title'] + '\n' + public_url + '\n'
         requests.post('https://api.pushbullet.com/v2/pushes', json={'body': text, 'type': 'note'},
                       headers=headers)
+        requests.post(os.getenv("DISCORD_URL"),json={'username': 'flyingBot', 'avatar.url': "", "content": discord_text})
     except:
         print('new modules action failed')
         logging.error('new modules action failed')
@@ -39,8 +45,8 @@ def refresh_job():
     thread = threading.Timer(60 * 10, refresh_job)
     thread.setDaemon(True)
     thread.start()
-    print("'.'")
-    logging.warning("'.'")
+    print("'.'\n<" + datetime.datetime.now().strftime("%H:%M:%S") + '>')
+    logging.warning("'.'\n:" + datetime.datetime.now().strftime("%H:%M:%S") + '>')
     refresh_modules()
 
 
@@ -88,9 +94,10 @@ def finding_additions(modules):
         if index == -1:
             module['created'] = time.time()
             new_modules.append(module)
-            threading.Thread(target=on_new_modules, args=[new_modules]).start()
         else:
             module['created'] = saved_modules[index]['created']
+    if len(new_modules) > 0:
+        threading.Thread(target=on_new_modules, args=[new_modules]).start()
 
 
 def old_dates(modules):
