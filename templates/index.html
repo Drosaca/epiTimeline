@@ -17,11 +17,22 @@
             return getChartrows()
         }
 
+        function chooseColor(module) {
+            if (module.registered)
+                return '#4d9e59'
+            let created = new Date(module.created * 1000)
+            let now = new Date()
+            let duration = (((now - created) / 1000)/60)/60
+            if ( duration < 72 )
+                return '#F7CB4D'
+            return '#4285f4'
+        }
+
         function getChartrows() {
             return rawData.map(module => [
                 module.chart_array[0],
                 '',
-                module.registered ? '#4d9e59' : '#4285f4',
+                chooseColor(module),
                 new Date(module.chart_array[1]),
                 new Date(module.chart_array[2])
             ])
