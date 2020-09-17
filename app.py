@@ -75,6 +75,9 @@ def retrieve_module_data(item):
     module_data = res.json()
     merge_activities(item, module_data, item['url'])
     item['project_start'] = module_data['activites'][0]['start'] if len(module_data['activites']) else item['begin']
+    item['project_end'] = module_data['activites'][0]['end'] if len(module_data['activites']) else item['end']
+    if to_time(item['project_start']) > to_time(item['end']):
+        item['end'] = item['project_end']
     item['registered'] = True if module_data['student_registered'] else False
     return 'done ' + item['title']
 
